@@ -1,7 +1,7 @@
-# Nexgen Data Hub V7
+# Nexgen Data Hub V10
 
-Executive-style dashboard landing page with KPI cards for total files, total records, active categories and total columns; category-level record/file counts; quick-action panels; upload TXT/CSV/XLSX/XLS; library management; dynamic disposition selection with inline downloads; duplicate filtering; combined exports.
+Category-first Streamlit data workspace. The dashboard shows three large category cards. Open a category to upload original TXT/CSV/Excel files, view the originals, download the automatically compiled category dataset, and filter/export within that category.
 
-Deploy using branch `main` and main file path `app.py`.
+Run locally: `pip install -r requirements.txt` then `streamlit run app.py`.
 
-Storage note: local app storage on Streamlit Community Cloud is not guaranteed to persist across restarts or redeployments. Configure secured persistent cloud storage before relying on it for long-term customer-data retention.
+Note: this version retains the existing local `app_data` storage approach. Streamlit Community Cloud local storage is not guaranteed to persist across restarts/redeployments. Do not upload real customer data until secure persistent storage and access controls are configured.
