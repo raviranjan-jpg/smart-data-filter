@@ -132,27 +132,57 @@ def apply_condition(frame, col, operator, value):
 # ---------- Styling: category-first premium interface ----------
 st.markdown("""
 <style>
-:root{color-scheme:light}
-.stApp{background:linear-gradient(135deg,#f4f6f2 0%,#edf2f7 55%,#f4eff7 100%)!important;color:#263548!important}
-[data-testid="stAppViewContainer"]{background:transparent!important}
-[data-testid="stHeader"]{background:rgba(244,246,242,.9)!important}
-.block-container{max-width:1450px;padding-top:1.35rem;padding-bottom:3rem}
-p,label,.stMarkdown{color:#35465a!important} h1,h2,h3,h4{color:#1c2d40!important}
-.hero{padding:30px 34px;border-radius:25px;color:#fff;background:linear-gradient(115deg,#182f46,#315b72 55%,#668c86);box-shadow:0 15px 38px #1d35451c;margin-bottom:22px}
-.hero small{color:#c8e1df;font-weight:800;letter-spacing:2px}.hero h1{color:white!important;font-size:36px;margin:8px 0}.hero p{color:#e6f0f1!important;margin:0}
-.metric-card,.cat-card{background:rgba(255,255,255,.88);border:1px solid #dce5e5;border-radius:20px;padding:19px 21px;min-height:120px;box-shadow:0 8px 25px #203b4a0c}
-.metric-label,.cat-label{font-size:12px;font-weight:850;letter-spacing:1px;color:#70818a!important;text-transform:uppercase}.metric-value{font-size:30px;font-weight:850;color:#203d50!important;margin-top:7px}.metric-note{font-size:12px;color:#829098!important}
-.cat-card{min-height:175px;border-top:5px solid #5b9b91}.cat-card h3{margin:10px 0 4px}.cat-card .big{font-size:32px;font-weight:850;color:#24485a}.cat-card .sub{font-size:13px;color:#73858d}.section-title{font-size:21px;font-weight:850;color:#233f50!important;margin:25px 0 12px}
-div.stButton>button,div.stDownloadButton>button{border-radius:12px!important;font-weight:750!important;border:1px solid #c7d8d7!important;background:#e6efed!important;color:#234e51!important;min-height:42px}
-div.stButton>button:hover,div.stDownloadButton>button:hover{background:#d6e7e3!important;border-color:#80aaa2!important}
-div.stButton>button[kind="primary"]{background:#286d69!important;color:white!important;border-color:#286d69!important}
-div[data-baseweb="select"]>div,div[data-baseweb="input"]>div,textarea{background:white!important;border:1px solid #d0dddf!important;color:#263548!important;border-radius:10px!important}
-div[data-baseweb="select"] *,div[data-baseweb="input"] *,textarea{color:#263548!important}
-div[data-testid="stFileUploader"] section{background:#fff!important;border:1px dashed #9bb9b4!important;border-radius:14px!important}
-div[data-testid="stFileUploader"] *{color:#35465a!important}
-[data-testid="stAlert"]{border-radius:13px!important} hr{border-color:#dce5e5!important}
+:root { color-scheme: light; }
+.stApp, [data-testid="stAppViewContainer"] { background: #f3f5f2 !important; color: #243447 !important; }
+[data-testid="stHeader"] { background: rgba(243,245,242,.98) !important; }
+[data-testid="stToolbar"] { background: transparent !important; }
+.block-container { max-width: 1420px; padding: 1.5rem 2rem 3.5rem; }
+/* Consistent readable typography */
+html, body, [class*="css"], [data-testid="stMarkdownContainer"], p, label,
+[data-testid="stWidgetLabel"], [data-testid="stCaptionContainer"] { color: #26384a !important; }
+h1,h2,h3,h4 { color: #192f43 !important; letter-spacing: -.35px; }
+small { color: inherit; }
+/* Hero */
+.hero { padding: 32px 36px; border-radius: 24px; color: #fff !important;
+ background: linear-gradient(112deg,#18354b 0%,#28596a 58%,#648b83 100%);
+ margin: 10px 0 24px; box-shadow: 0 12px 30px rgba(28,54,69,.12); }
+.hero small { color: #d2e8e4 !important; font-size: 11px; font-weight: 850; letter-spacing: 2px; }
+.hero h1 { color: #fff !important; font-size: clamp(30px,3vw,40px); margin: 9px 0 10px; }
+.hero p { color: #edf5f3 !important; font-size: 16px; margin: 0; }
+/* KPI and category tiles */
+.metric-card,.cat-card { background: #fff; border: 1px solid #dce5e1; border-radius: 18px;
+ padding: 20px 22px; min-height: 118px; box-shadow: 0 5px 18px rgba(31,55,67,.045); }
+.metric-label,.cat-label { font-size: 11px; font-weight: 850; letter-spacing: 1.1px; color: #71818a !important; text-transform: uppercase; }
+.metric-value { font-size: 31px; font-weight: 850; color: #1e4652 !important; margin-top: 7px; }
+.metric-note,.cat-card .sub { font-size: 13px; color: #687b83 !important; }
+.cat-card { min-height: 185px; border-top: 5px solid #65988d; }
+.cat-card h3 { margin: 10px 0 5px; color: #20394a !important; }
+.cat-card .big { font-size: 34px; font-weight: 850; color: #1e4652 !important; }
+.section-title { font-size: 21px; font-weight: 850; color: #20394a !important; margin: 25px 0 12px; }
+/* Navigation and tabs: visible states, no washed-out text */
+div.stButton > button, div.stDownloadButton > button { border-radius: 11px !important; min-height: 44px;
+ font-weight: 700 !important; border: 1px solid #cbd9d5 !important; background: #fff !important; color: #244a50 !important; }
+div.stButton > button:hover, div.stDownloadButton > button:hover { background: #eaf2ee !important; border-color: #83aaa0 !important; color: #183d43 !important; }
+div.stButton > button[kind="primary"] { background: #245f61 !important; color: #fff !important; border-color: #245f61 !important; }
+div.stButton > button[kind="primary"] p { color: #fff !important; }
+button[data-baseweb="tab"] { color: #42586a !important; font-weight: 700 !important; background: transparent !important; }
+button[data-baseweb="tab"][aria-selected="true"] { color: #1d6562 !important; border-bottom-color: #1d7770 !important; }
+button[data-baseweb="tab"] p { color: inherit !important; }
+/* Inputs, uploader, data table */
+div[data-baseweb="select"] > div, div[data-baseweb="input"] > div, textarea { background: #fff !important;
+ border: 1px solid #cfdcd8 !important; color: #26384a !important; border-radius: 10px !important; }
+div[data-baseweb="select"] *, div[data-baseweb="input"] *, textarea { color: #26384a !important; }
+[data-testid="stFileUploader"] section { background: #fff !important; border: 1.5px dashed #8eafa6 !important; border-radius: 15px !important; }
+[data-testid="stFileUploader"] section * { color: #30495a !important; }
+[data-testid="stDataFrame"], [data-testid="stTable"] { border: 1px solid #dce5e1; border-radius: 12px; overflow: hidden; }
+[data-testid="stAlert"] { border-radius: 12px !important; }
+[data-testid="stMetricLabel"], [data-testid="stMetricValue"] { color: #26384a !important; }
+hr { border-color: #dce5e1 !important; }
+/* Delete controls */
+button[kind="secondary"] { color: #30495a !important; }
+@media (max-width: 700px) { .block-container { padding: 1rem 1rem 2rem; } .hero { padding: 24px; } }
 </style>
-""",unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 ensure_storage()
 items=load_index()
@@ -262,9 +292,42 @@ elif st.session_state.page=='workspace':
     with compile_tab:
         records=[x for x in load_index() if x.get('category')==cat]; compiled=category_frame(cat,load_index())
         if records:
-            st.subheader('Original uploaded files')
-            st.dataframe(pd.DataFrame([{'File name':r['original_name'],'Uploaded':r['uploaded_at'],'Records':r['rows'],'Columns':r['columns']} for r in records]),use_container_width=True,hide_index=True)
-            st.markdown('### Automatic compilation')
+            st.subheader('Original files in this category')
+            st.caption('Every upload is listed separately here. You can remove an accidental upload without affecting files in other categories.')
+            for r in records:
+                left, middle, right = st.columns([5, 2, 1.5], vertical_alignment='center')
+                with left:
+                    st.markdown(f"**📄 {r['original_name']}**")
+                    st.caption(f"Uploaded {r['uploaded_at']} · {int(r.get('rows', 0)):,} records · {int(r.get('columns', 0))} columns")
+                with middle:
+                    st.caption(f"Category: {cat}")
+                with right:
+                    if st.button('🗑️ Delete', key=f"delete_{cat}_{r['id']}", use_container_width=True):
+                        st.session_state[f"confirm_delete_{cat}"] = r['id']
+                        st.rerun()
+                st.divider()
+
+            pending_id = st.session_state.get(f"confirm_delete_{cat}")
+            if pending_id and any(x.get('id') == pending_id for x in records):
+                target = next(x for x in records if x.get('id') == pending_id)
+                st.warning(f"Delete **{target['original_name']}** from **{cat}**? This removes the original file. The category compilation will be rebuilt without it.")
+                confirm_col, cancel_col = st.columns(2)
+                with confirm_col:
+                    if st.button('Yes, delete this file', type='primary', key=f'confirm_yes_{cat}'):
+                        latest = load_index()
+                        deleting = next((x for x in latest if x.get('id') == pending_id and x.get('category') == cat), None)
+                        if deleting:
+                            (FILES_DIR / deleting.get('stored_name', '')).unlink(missing_ok=True)
+                            save_index([x for x in latest if x.get('id') != pending_id])
+                        st.session_state.pop(f"confirm_delete_{cat}", None)
+                        st.success('File deleted. The compiled data and counts have been updated.')
+                        st.rerun()
+                with cancel_col:
+                    if st.button('Cancel', key=f'confirm_cancel_{cat}'):
+                        st.session_state.pop(f"confirm_delete_{cat}", None)
+                        st.rerun()
+
+            st.markdown('### Automatic category compilation')
             st.success(f'{len(records)} original files combined · {len(compiled):,} total records · {len(compiled.columns)} columns')
             download_buttons_inline(compiled,f'{cat}_compiled',f'compiled_{cat}')
             st.dataframe(compiled.head(100),use_container_width=True,hide_index=True)
