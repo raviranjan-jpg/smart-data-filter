@@ -148,6 +148,44 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ---------- High-contrast dark theme (readable labels + consistent controls) ----------
+st.markdown("""
+<style>
+    :root { color-scheme: dark; }
+    .stApp { background: radial-gradient(ellipse at top, #1b2b45 0%, #101827 48%, #0b1220 100%) !important; color: #e8eef7 !important; }
+    [data-testid="stAppViewContainer"] { background: transparent !important; }
+    [data-testid="stHeader"] { background: rgba(11,18,32,.92) !important; }
+    .block-container { color: #e8eef7 !important; }
+    p, label, .stMarkdown, .stText, [data-testid="stCaptionContainer"] { color: #d5deeb !important; }
+    h1, h2, h3, h4, .section-heading { color: #f4f7fb !important; }
+    .metric-card, .category-card { background: #1b293d !important; border: 1px solid #34445d !important; box-shadow: 0 8px 24px rgba(0,0,0,.22) !important; }
+    .metric-label, .category-title { color: #b8c7da !important; }
+    .metric-value, .category-count { color: #ffffff !important; }
+    .metric-note, .category-sub { color: #a8b7ca !important; }
+    div[data-testid="stTabs"] { background: transparent !important; }
+    div[data-testid="stTabs"] button { color: #cbd5e1 !important; }
+    div[data-testid="stTabs"] button[aria-selected="true"] { color: #60a5fa !important; border-bottom-color: #60a5fa !important; }
+    div[data-baseweb="select"] > div, div[data-baseweb="input"] > div,
+    div[data-testid="stFileUploader"] section, textarea {
+        background: #202c40 !important; border-color: #465873 !important; color: #f1f5f9 !important;
+    }
+    div[data-baseweb="select"] *, div[data-baseweb="input"] *, textarea { color: #f1f5f9 !important; }
+    div[role="listbox"], ul[role="listbox"] { background: #202c40 !important; }
+    li[role="option"] { color: #f1f5f9 !important; }
+    div[data-testid="stFileUploader"] small, div[data-testid="stFileUploader"] span { color: #cbd5e1 !important; }
+    div.stButton > button, div.stDownloadButton > button {
+        background: #243650 !important; color: #f8fafc !important; border: 1px solid #526985 !important;
+        border-radius: 10px !important; font-weight: 700 !important;
+    }
+    div.stButton > button:hover, div.stDownloadButton > button:hover { background: #315078 !important; border-color: #75a9e8 !important; }
+    div.stButton > button[kind="primary"] { background: #2563eb !important; border-color: #3b82f6 !important; }
+    [data-testid="stAlert"] { background: #1d3048 !important; color: #e8eef7 !important; border: 1px solid #3b5575 !important; }
+    [data-testid="stAlert"] p, [data-testid="stAlert"] strong { color: #e8eef7 !important; }
+    [data-testid="stDataFrame"] { border: 1px solid #40516b !important; }
+    hr { border-color: #34445d !important; }
+</style>
+""", unsafe_allow_html=True)
+
 ensure_storage()
 items = load_index()
 total_files = len(items)
