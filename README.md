@@ -1,12 +1,21 @@
-# Nexgen Data Hub V12
+# Nexgen Data Hub V13
 
-Updated visual theme for the category-first Nexgen Data Hub.
+V13 builds on the supplied V12 app.py.
 
-## Files
-- `app.py` — Streamlit application
-- `requirements.txt` — dependencies
+## Updates
+- Cached file parsing using Streamlit data cache, keyed by file path and modification metadata.
+- Faster disposition counts using one value-count aggregation instead of rescanning the full data for each disposition.
+- Cached export payloads.
+- Global customer search on the dashboard across all three categories.
+- Displays every matching row, all uploaded columns, source category and source filename.
+- Phone normalization removes spaces, punctuation and country-code formatting; also checks last 10 digits for numbers of 10+ digits.
+- Improved navigation button text visibility.
 
-## Deploy
-Replace the repository's `app.py`, `requirements.txt`, and `README.md` with these files and commit to the `main` branch. Streamlit Community Cloud will redeploy automatically.
+## Run
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-**Storage note:** this version still uses local `app_data/` storage. Streamlit Community Cloud local storage is not guaranteed to persist across restarts or redeployments. Configure secured persistent storage and access controls before uploading real customer data.
+## Important
+The app continues to use local `app_data/` storage. Streamlit Community Cloud local storage is not guaranteed to persist across restarts or redeployments. Do not upload real customer personal data until authentication, access controls and secure persistent storage are configured. Search scans uploaded files and relies on phone/mobile/contact-like column names.

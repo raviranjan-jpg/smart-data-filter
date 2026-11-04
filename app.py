@@ -78,6 +78,26 @@ def unique_headers(df):
     df.columns = cols
     return df
 
+
+@st.cache_data(show_spinner=False)
+def cached_read_file(path_str, mtime_ns, size, delimiter_choice="Auto-detect", has_header=True):
+    return unique_headers(read_file(Path(path_str), delimiter_choice, has_header))
+
+def normalize_phone(value):
+    return re.sub(r"\D", "", str(value or ""))
+
+def phone_columns(columns):
+    hints = ("phone", "mobile", "tel", "contact", "msisdn", "number")
+    return [c for c in columns if any(h in str(c).casefold() for h in hints)]
+
+@st.cache_data(show_spinner=False)
+def cached_export(df, fmt):
+    if fmt == "xlsx":
+        return excel_bytes(df)
+    if fmt == "csv":
+        return df.to_csv(index=False).encode("utf-8-sig")
+    return df.to_csv(index=False, sep="|").encode("utf-8")
+
 def excel_bytes(df):
     out = io.BytesIO()
     with pd.ExcelWriter(out, engine="openpyxl") as writer:
@@ -86,29 +106,33 @@ def excel_bytes(df):
 
 def download_buttons_inline(df, filename, key):
     xlsx, csv, txt = st.columns(3, gap="small")
-    xlsx.download_button("Excel", data=excel_bytes(df), file_name=safe_export_name(filename)+".xlsx",
+    xlsx.download_button("Excel", data=cached_export(df, "xlsx"), file_name=safe_export_name(filename)+".xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True, key=f"{key}_xlsx")
-    csv.download_button("CSV", data=df.to_csv(index=False).encode("utf-8-sig"),
+    csv.download_button("CSV", data=cached_export(df, "csv"),
         file_name=safe_export_name(filename)+".csv", mime="text/csv",
         use_container_width=True, key=f"{key}_csv")
-    txt.download_button("TXT", data=df.to_csv(index=False, sep="|").encode("utf-8"),
+    txt.download_button("TXT", data=cached_export(df, "txt"),
         file_name=safe_export_name(filename)+".txt", mime="text/plain",
         use_container_width=True, key=f"{key}_txt")
 
-def category_frame(category, records=None):
-    records = load_index() if records is None else records
+def frame_for_records(records):
     frames = []
     for record in records:
-        if record.get("category") != category:
-            continue
         file_path = FILES_DIR / record.get("stored_name", "")
         if file_path.exists():
             try:
-                frames.append(unique_headers(read_file(file_path, record.get("delimiter", "Auto-detect"), record.get("has_header", True))))
+                stat = file_path.stat()
+                frames.append(cached_read_file(str(file_path), stat.st_mtime_ns, stat.st_size,
+                    record.get("delimiter", "Auto-detect"), record.get("has_header", True)))
             except Exception:
                 pass
     return pd.concat(frames, ignore_index=True, sort=False).fillna("") if frames else pd.DataFrame()
+
+def category_frame(category, records=None):
+    records = load_index() if records is None else records
+    return frame_for_records([r for r in records if r.get("category") == category])
+
 
 def apply_condition(frame, col, operator, value):
     s = frame[col].astype(str)
@@ -168,6 +192,9 @@ div.stButton > button[kind="primary"] p { color: #fff !important; }
 button[data-baseweb="tab"] { color: #42586a !important; font-weight: 700 !important; background: transparent !important; }
 button[data-baseweb="tab"][aria-selected="true"] { color: #1d6562 !important; border-bottom-color: #1d7770 !important; }
 button[data-baseweb="tab"] p { color: inherit !important; }
+div[data-testid="stHorizontalBlock"] div.stButton > button { white-space: nowrap !important; }
+div[data-testid="stHorizontalBlock"] div.stButton > button p { color: #244a50 !important; font-size: 14px !important; }
+div[data-testid="stHorizontalBlock"] div.stButton > button[kind="primary"] p { color: #fff !important; }
 /* Inputs, uploader, data table */
 div[data-baseweb="select"] > div, div[data-baseweb="input"] > div, textarea { background: #fff !important;
  border: 1px solid #cfdcd8 !important; color: #26384a !important; border-radius: 10px !important; }
@@ -201,7 +228,7 @@ def render_filter_tools(category, records):
     frames=[]
     for label in chosen:
         r=file_map[label]; fp=FILES_DIR/r['stored_name']
-        if fp.exists(): frames.append(unique_headers(read_file(fp,r.get('delimiter','Auto-detect'),r.get('has_header',True))))
+        if fp.exists(): stat=fp.stat(); frames.append(cached_read_file(str(fp),stat.st_mtime_ns,stat.st_size,r.get('delimiter','Auto-detect'),r.get('has_header',True)))
     if not frames: st.warning('Selected files could not be read.'); return
     data=pd.concat(frames,ignore_index=True,sort=False).fillna('')
     st.success(f"{len(frames)} files · {len(data):,} records · {len(data.columns)} columns")
@@ -213,9 +240,9 @@ def render_filter_tools(category, records):
         values=sorted(str(v) for v in data[status].unique() if str(v).strip())
         st.caption(f'{len(values)} distinct values detected automatically')
         selected=st.multiselect('Choose dispositions',values,default=values,key=f'disps_{category}')
-        for value in values:
-            subset=data[data[status].astype(str)==value]
-            st.caption(f'{value}  ·  {len(subset):,} records')
+        counts = data[status].astype(str).value_counts(dropna=False)
+        st.dataframe(pd.DataFrame({"Disposition": values, "Records": [int(counts.get(v, 0)) for v in values]}),
+                     use_container_width=True, hide_index=True, height=min(320, 38 * (len(values)+1)))
         filtered=data[data[status].astype(str).isin(selected)].copy()
     with st.expander('Additional filters'):
         extra=st.selectbox('Column',['— None —']+cols,key=f'extra_{category}')
@@ -251,6 +278,51 @@ with nav2:
 if st.session_state.page=='home':
     items=load_index(); total_files=len(items); total_rows=sum(int(x.get('rows',0) or 0) for x in items)
     st.markdown('<div class="hero"><small>NEXGEN BPS · DATA OPERATIONS</small><h1>Nexgen Data Hub</h1><p>One organised workspace for every data category. Open a category to upload, compile, filter and export its files.</p></div>',unsafe_allow_html=True)
+
+    st.markdown("### 🔎 Global Customer Search")
+    st.caption("Search all uploaded files across all three categories.")
+    with st.form("global_customer_search", clear_on_submit=False):
+        query = st.text_input("Search by mobile / phone number", placeholder="Enter customer number, e.g. +44 7xxx xxx xxx")
+        do_search = st.form_submit_button("Search customer", type="primary", use_container_width=True)
+    if do_search:
+        digits = normalize_phone(query)
+        if len(digits) < 6:
+            st.warning("Please enter at least 6 digits.")
+        else:
+            with st.spinner("Searching all uploaded files..."):
+                hits = []
+                for rec in load_index():
+                    fp = FILES_DIR / rec.get("stored_name", "")
+                    if not fp.exists():
+                        continue
+                    stat = fp.stat()
+                    try:
+                        df = cached_read_file(str(fp), stat.st_mtime_ns, stat.st_size,
+                            rec.get("delimiter", "Auto-detect"), rec.get("has_header", True))
+                    except Exception:
+                        continue
+                    pcols = phone_columns(df.columns)
+                    if not pcols:
+                        continue
+                    mask = pd.Series(False, index=df.index)
+                    for col in pcols:
+                        normalized = df[col].astype(str).map(normalize_phone)
+                        mask |= normalized.eq(digits)
+                        if len(digits) >= 10:
+                            mask |= normalized.str.endswith(digits[-10:]) & normalized.str.len().ge(10)
+                    if mask.any():
+                        found = df.loc[mask].copy()
+                        found.insert(0, "Source File", rec.get("original_name", ""))
+                        found.insert(0, "Source Category", rec.get("category", ""))
+                        hits.append(found)
+                if hits:
+                    result = pd.concat(hits, ignore_index=True, sort=False).fillna("")
+                    st.success(f"Found {len(result):,} matching record(s) across {result['Source File'].nunique():,} file(s).")
+                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    download_buttons_inline(result, "customer_search_results", "global_customer_search_results")
+                else:
+                    st.info("No matching number found. Check that your files contain a phone/mobile/contact column.")
+
     kpis=[('TOTAL FILES',f'{total_files:,}','Original files stored'),('TOTAL RECORDS',f'{total_rows:,}','Across all categories'),('ACTIVE CATEGORIES',f'{sum(1 for c in CATEGORIES if stats_for(c)[0]):,} / 3','Categories containing data')]
     cc=st.columns(3)
     for c,(lab,val,note) in zip(cc,kpis):
